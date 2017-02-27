@@ -565,9 +565,9 @@ contains
     val=trim(pwd)//'/'//trim(filename)
     end function
 
-    type(rsf_t) function rsf_output(filename,in,data_format,ax1,ax2,ax3,ax4,ax5,abspath) result(sf)
+    type(rsf_t) function rsf_output(filename,in,data_format,ax1,ax2,ax3,ax4,ax5,ax6,ax7,ax8,ax9,abspath) result(sf)
     character(len=*),intent(in),optional:: filename,in,data_format
-    type(Axis_t),intent(in),optional:: ax1,ax2,ax3,ax4,ax5
+    type(Axis_t),intent(in),optional:: ax1,ax2,ax3,ax4,ax5,ax6,ax7,ax8,ax9
     logical,intent(in),optional:: abspath
     logical:: use_abspath=.true.
     integer:: esize
@@ -599,6 +599,10 @@ contains
     if(present(ax3)) sf%axes(3)=ax3
     if(present(ax4)) sf%axes(4)=ax4
     if(present(ax5)) sf%axes(5)=ax5
+    if(present(ax6)) sf%axes(5)=ax6
+    if(present(ax7)) sf%axes(5)=ax7
+    if(present(ax8)) sf%axes(5)=ax8
+    if(present(ax9)) sf%axes(5)=ax9
     end function
 
 ! parse rsf to read
