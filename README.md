@@ -12,6 +12,49 @@ make install
 your_fortran_compiler -o main.e main.f90 -I/path/to/include -L/path/to/lib -lrsfio
 ```
 
+## Quick reference
+```fortran
+use rsfio_mod, only: rsf_t, axis_t, rsf_input, rsf_output
+type(rsf_t):: sf, so
+type(axis_t):: at, ax
+real,allocatable:: arr(:,:)
+integer:: n1,n2, itr
+
+! open: read
+sf = rsf_input("input.rsf")
+
+! access axis information
+at = sf%axes(1)
+ax = sf%axes(2)
+n1 = sf%n(1)
+n2 = sf%n(2)
+
+! access (read/write) header infomation
+print*, sf%in, sf%esize, sf%data_format
+
+! read data
+allocate(arr(n1,n2))
+call sf%read(arr)
+
+! read data trace by trace
+do itr=1,sf%ntr()
+    call sf%read(arr(:,itr))
+enddo
+
+! open: write
+so = rsf_output("output.rsf",in="output.rsf@", &
+                 data_format="native_float", &
+                 ax1=at,ax2=ax,abspath=.true.)
+
+! write data
+call so%write(arr)
+
+! write data trace by trace
+do itr=1,so%ntr()
+    call so%write(arr(:,itr))
+enddo
+```
+
 ## RSF file format
 
 Please read the [Guide to RSF file format](http://www.ahay.org/wiki/Guide_to_RSF_file_format).
