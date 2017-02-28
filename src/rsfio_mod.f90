@@ -31,6 +31,7 @@ module rsfio_mod
             procedure,public:: d => get_d
             procedure,public:: label => get_label
             procedure,public:: unit => get_unit
+            procedure,public:: close => rsf_close
 
             generic,public:: read => rsf_read_i,rsf_read_f,rsf_read_d,rsf_read_c,rsf_read_z, &
                                      rsf_read_i2,rsf_read_f2,rsf_read_d2,rsf_read_c2,rsf_read_z2, &
@@ -844,6 +845,13 @@ contains
     do i=1,9
         if(sf%axes(i)%n > 0) call print_axis(sf%axes(i),iunit,i)
     enddo
+    end subroutine
+
+    subroutine rsf_close(sf)
+    class(rsf_t),intent(inout):: sf
+    logical:: unit_opened
+    inquire(unit=sf%iunit,opened=unit_opened)
+    if(unit_opened) close(sf%iunit)
     end subroutine
 
 !! utils

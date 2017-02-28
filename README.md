@@ -53,6 +53,9 @@ call so%write(arr)
 do itr=1,so%ntr()
     call so%write(arr(:,itr))
 enddo
+
+call sf%close()
+call so%close()
 ```
 
 ## RSF file format
@@ -181,6 +184,9 @@ call sf%read(v)
 do itr=1,sf%n(2)
 	call sf%read(v(:,itr))
 enddo
+
+! finalize
+call sf%close()
 ```
 
 ### API: Output
@@ -206,10 +212,11 @@ All arguments are optional.
 - `ax1` to `ax9` are axes information: type(axis_t) explained above. We can change the axes information after calling `rsf_output` and before calling `rsf%write`.
 - `abspath` is a logical value (default=.true.). The module writes `in="/absolute/data/path"` in the header unless `abspath` is false. If it is false, the module uses relative data path.
 
-We use `call sf%write` to write header and data.
+We use `call sf%write` to write header and data. And close the file after writing is done.
 
 ```fortran
 call sf%write(array)
+call sf%close()
 ```
 
 Supported array types are same as those of `sf%read`. Here is an example.
@@ -242,5 +249,6 @@ do itr=1,sf%n(2)
     call sf%write(sm(:,itr))
 enddo
 
-! no finalization of the handle is required.
+! finalization
+call sf%close()
 ```
