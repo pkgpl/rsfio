@@ -90,6 +90,7 @@ contains
     integer,intent(in),optional:: iunit,id
     integer un
     character(len=16):: strn,stro,strd
+    character:: cid
     if(present(iunit)) then
         un=iunit
     else
@@ -99,11 +100,12 @@ contains
     write(stro,'(f10.5)') ax%o
     write(strd,'(f10.5)') ax%d
     if(present(id)) then
-        write(un,"('n',i0,'=',a)",advance='no') id,trim(adjustl(strn))
-        write(un,"(' o',i0,'=',a)",advance='no') id,trim(adjustl(stro))
-        write(un,"(' d',i0,'=',a)",advance='no') id,trim(adjustl(strd))
-        write(un,"(' label',i0,'=',a)",advance='no') id,quote(ax%label)
-        write(un,"(' unit',i0,'=',a)") id,quote(ax%unit)
+        write(cid,'(i0)') id
+        write(un,'(a)',advance='no') 'n'//cid//'='//trim(adjustl(strn))
+        write(un,'(a)',advance='no') ' d'//cid//'='//trim(adjustl(strd))
+        write(un,'(a)',advance='no') ' o'//cid//'='//trim(adjustl(stro))
+        write(un,'(a)',advance='no') ' label'//cid//'='//trim(adjustl(quote(ax%label)))
+        write(un,'(a)') ' unit'//cid//'='//trim(adjustl(quote(ax%unit)))
     else
         write(un,'(a)',advance='no') "n="//trim(adjustl(strn))
         write(un,'(a)',advance='no') " o="//trim(adjustl(stro))
@@ -784,15 +786,12 @@ contains
     integer:: istart,iend,id,l
     istart=1
     iend=len_trim(text)
-    !print*,'istart,iend=',istart,iend
     do while(istart < iend)
         call extract_kv(text(istart:iend),par)
-        !print*,'parse::',par
         ! parse string
         if(len_trim(par)==0) exit
         call split_kv(par,key,val)
         val=unquote(val)
-        !print*,'key,val:: ',key,"=",val
         if(key.eq.'in') then
             sf%in=val
         elseif(key.eq.'data_format') then
@@ -823,10 +822,10 @@ contains
     class(rsf_t),intent(inout):: sf
     integer:: iunit
     if(.not.sf%wrote_header) then
-        iunit=assign_unit()
         if(sf%filename=='') then
             call rsf_print_stream(sf,STDOUT)
         else
+            iunit=assign_unit()
             open(iunit,file=sf%filename)
             call rsf_print_stream(sf,iunit)
             close(iunit)
@@ -888,6 +887,10 @@ contains
     pure function quote(str) result(v)
     character(len=*),intent(in):: str
     character(len=:),allocatable:: v
+    if(len_trim(str)==0) then
+        v='""'
+        return
+    endif
     if(str(1:1)=='"'.or.str(1:1)=="'") then
         v=str
     else
@@ -921,7 +924,6 @@ contains
     ivalstart=id+1
     ispace=index(text(ivalstart:),sp)
     do while(ispace == 1)
-        !print*,'consume',ispace
         ivalstart=ivalstart+ispace
         ispace=index(text(ivalstart:),sp)
     enddo
