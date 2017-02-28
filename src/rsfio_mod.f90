@@ -35,8 +35,9 @@ module rsfio_mod
             generic,public:: read => rsf_read_i,rsf_read_f,rsf_read_d,rsf_read_c,rsf_read_z, &
                                      rsf_read_i2,rsf_read_f2,rsf_read_d2,rsf_read_c2,rsf_read_z2, &
                                      rsf_read_i3,rsf_read_f3,rsf_read_d3,rsf_read_c3,rsf_read_z3
-            generic,public:: write => rsf_write_i,rsf_write_f,rsf_write_c,&
-                                      rsf_write_i2,rsf_write_f2,rsf_write_c2
+            generic,public:: write => rsf_write_i,rsf_write_f,rsf_write_d,rsf_write_c,rsf_write_z, &
+                                      rsf_write_i2,rsf_write_f2,rsf_write_d2,rsf_write_c2,rsf_write_z2, &
+                                      rsf_write_i3,rsf_write_f3,rsf_write_d3,rsf_write_c3,rsf_write_z3
 
             procedure,private:: form => rsf_form
             procedure,private:: type => rsf_type
@@ -59,10 +60,21 @@ module rsfio_mod
 
             procedure,private:: rsf_write_i
             procedure,private:: rsf_write_f
+            procedure,private:: rsf_write_d
             procedure,private:: rsf_write_c
+            procedure,private:: rsf_write_z
             procedure,private:: rsf_write_i2
             procedure,private:: rsf_write_f2
+            procedure,private:: rsf_write_d2
             procedure,private:: rsf_write_c2
+            procedure,private:: rsf_write_z2
+            procedure,private:: rsf_write_i3
+            procedure,private:: rsf_write_f3
+            procedure,private:: rsf_write_d3
+            procedure,private:: rsf_write_c3
+            procedure,private:: rsf_write_z3
+
+            procedure,private:: assert_type
 
     end type
 
@@ -188,6 +200,7 @@ contains
     class(rsf_t),intent(inout):: sf
     integer,intent(out):: arr(:)
     integer:: i
+    call sf%assert_type('int')
     call rsf_data_open(sf,'r')
     if(sf%form() .eq.'native') then
         sf%itr=sf%itr+1
@@ -207,6 +220,7 @@ contains
     class(rsf_t),intent(inout):: sf
     real(kind=4),intent(out):: arr(:)
     integer:: i
+    call sf%assert_type('float')
     call rsf_data_open(sf,'r')
     if(sf%form() .eq.'native') then
         sf%itr=sf%itr+1
@@ -233,6 +247,7 @@ contains
     class(rsf_t),intent(inout):: sf
     complex(kind=4),intent(out):: arr(:)
     integer:: i
+    call sf%assert_type('complex')
     call rsf_data_open(sf,'r')
     if(sf%form() .eq.'native') then
         sf%itr=sf%itr+1
@@ -259,6 +274,7 @@ contains
     class(rsf_t),intent(inout):: sf
     integer,intent(out):: arr(:,:)
     integer:: i,i2
+    call sf%assert_type('int')
     call rsf_data_open(sf,'r')
     if(sf%form() .eq.'native') then
         do i2=1,sf%n(2)
@@ -278,6 +294,7 @@ contains
     class(rsf_t),intent(inout):: sf
     real(kind=4),intent(out):: arr(:,:)
     integer:: i,i2
+    call sf%assert_type('float')
     call rsf_data_open(sf,'r')
     if(sf%form() .eq.'native') then
         do i2=1,sf%n(2)
@@ -304,6 +321,7 @@ contains
     class(rsf_t),intent(inout):: sf
     complex(kind=4),intent(out):: arr(:,:)
     integer:: i,i2
+    call sf%assert_type('complex')
     call rsf_data_open(sf,'r')
     if(sf%form() .eq.'native') then
         do i2=1,sf%n(2)
@@ -330,6 +348,7 @@ contains
     class(rsf_t),intent(inout):: sf
     integer,intent(out):: arr(:,:,:)
     integer:: i,i2,i3,irec
+    call sf%assert_type('int')
     call rsf_data_open(sf,'r')
     if(sf%form() .eq.'native') then
         irec=0
@@ -355,6 +374,7 @@ contains
     class(rsf_t),intent(inout):: sf
     real(kind=4),intent(out):: arr(:,:,:)
     integer:: i,i2,i3,irec
+    call sf%assert_type('float')
     call rsf_data_open(sf,'r')
     if(sf%form() .eq.'native') then
         irec=0
@@ -387,6 +407,7 @@ contains
     class(rsf_t),intent(inout):: sf
     complex(kind=4),intent(out):: arr(:,:,:)
     integer:: i,i2,i3,irec
+    call sf%assert_type('complex')
     call rsf_data_open(sf,'r')
     if(sf%form() .eq.'native') then
         irec=0
@@ -421,6 +442,7 @@ contains
     class(rsf_t),intent(inout):: sf
     integer,intent(in):: arr(:)
     integer i
+    call sf%assert_type('int')
     call sf%write_header()
     call rsf_data_open(sf,'w')
     if(sf%form().eq.'native') then
@@ -443,6 +465,7 @@ contains
     class(rsf_t),intent(inout):: sf
     real(kind=4),intent(in):: arr(:)
     integer i
+    call sf%assert_type('float')
     call sf%write_header()
     call rsf_data_open(sf,'w')
     if(sf%form().eq.'native') then
@@ -459,12 +482,20 @@ contains
     else
         call errexit("Wrong form")
     endif
+    end subroutine
+    subroutine rsf_write_d(sf,arr)
+    class(rsf_t),intent(inout):: sf
+    real(kind=8),intent(in):: arr(:)
+    real(kind=4):: sarr(size(arr))
+    sarr=arr
+    call sf%write(sarr)
     end subroutine
 
     subroutine rsf_write_c(sf,arr)
     class(rsf_t),intent(inout):: sf
     complex(kind=4),intent(in):: arr(:)
     integer i
+    call sf%assert_type('complex')
     call sf%write_header()
     call rsf_data_open(sf,'w')
     if(sf%form().eq.'native') then
@@ -482,11 +513,19 @@ contains
         call errexit("Wrong form")
     endif
     end subroutine
+    subroutine rsf_write_z(sf,arr)
+    class(rsf_t),intent(inout):: sf
+    complex(kind=8),intent(in):: arr(:)
+    complex(kind=4):: sarr(size(arr))
+    sarr=arr
+    call sf%write(sarr)
+    end subroutine
 
     subroutine rsf_write_i2(sf,arr)
     class(rsf_t),intent(inout):: sf
     integer,intent(in):: arr(:,:)
     integer i,i2
+    call sf%assert_type('int')
     call sf%write_header()
     call rsf_data_open(sf,'w')
     if(sf%form().eq.'native') then
@@ -507,6 +546,7 @@ contains
     class(rsf_t),intent(inout):: sf
     real(kind=4),intent(in):: arr(:,:)
     integer i,i2
+    call sf%assert_type('float')
     call sf%write_header()
     call rsf_data_open(sf,'w')
     if(sf%form().eq.'native') then
@@ -522,11 +562,19 @@ contains
     endif
     close(sf%iunit)
     end subroutine
+    subroutine rsf_write_d2(sf,arr)
+    class(rsf_t),intent(inout):: sf
+    real(kind=8),intent(in):: arr(:,:)
+    real(kind=4):: sarr(size(arr,1),size(arr,2))
+    sarr=arr
+    call sf%write(sarr)
+    end subroutine
 
     subroutine rsf_write_c2(sf,arr)
     class(rsf_t),intent(inout):: sf
     complex(kind=4),intent(in):: arr(:,:)
     integer i,i2
+    call sf%assert_type('complex')
     call sf%write_header()
     call rsf_data_open(sf,'w')
     if(sf%form().eq.'native') then
@@ -541,6 +589,106 @@ contains
         call errexit("Wrong form")
     endif
     close(sf%iunit)
+    end subroutine
+    subroutine rsf_write_z2(sf,arr)
+    class(rsf_t),intent(inout):: sf
+    complex(kind=8),intent(in):: arr(:,:)
+    complex(kind=4):: sarr(size(arr,1),size(arr,2))
+    sarr=arr
+    call sf%write(sarr)
+    end subroutine
+
+    subroutine rsf_write_i3(sf,arr)
+    class(rsf_t),intent(inout):: sf
+    integer,intent(in):: arr(:,:,:)
+    integer i,i2,i3,irec
+    call sf%assert_type('int')
+    call sf%write_header()
+    call rsf_data_open(sf,'w')
+    if(sf%form().eq.'native') then
+        irec=0
+        do i3=1,sf%n(3)
+        do i2=1,sf%n(2)
+            irec=irec+1
+            write(sf%iunit,rec=irec) (arr(i,i2,i3),i=1,sf%n(1))
+        enddo
+        enddo
+    elseif(sf%form().eq.'ascii') then
+        do i3=1,sf%n(3)
+        do i2=1,sf%n(2)
+            write(sf%iunit,*) (arr(i,i2,i3),i=1,sf%n(1))
+        enddo
+        enddo
+    else
+        call errexit("Wrong form")
+    endif
+    close(sf%iunit)
+    end subroutine
+    subroutine rsf_write_f3(sf,arr)
+    class(rsf_t),intent(inout):: sf
+    real(kind=4),intent(in):: arr(:,:,:)
+    integer i,i2,i3,irec
+    call sf%assert_type('float')
+    call sf%write_header()
+    call rsf_data_open(sf,'w')
+    if(sf%form().eq.'native') then
+        irec=0
+        do i3=1,sf%n(3)
+        do i2=1,sf%n(2)
+            irec=irec+1
+            write(sf%iunit,rec=irec) (arr(i,i2,i3),i=1,sf%n(1))
+        enddo
+        enddo
+    elseif(sf%form().eq.'ascii') then
+        do i3=1,sf%n(3)
+        do i2=1,sf%n(2)
+            write(sf%iunit,*) (arr(i,i2,i3),i=1,sf%n(1))
+        enddo
+        enddo
+    else
+        call errexit("Wrong form")
+    endif
+    close(sf%iunit)
+    end subroutine
+    subroutine rsf_write_d3(sf,arr)
+    class(rsf_t),intent(inout):: sf
+    real(kind=8),intent(in):: arr(:,:,:)
+    real(kind=4):: sarr(size(arr,1),size(arr,2),size(arr,3))
+    sarr=arr
+    call sf%write(sarr)
+    end subroutine
+    subroutine rsf_write_c3(sf,arr)
+    class(rsf_t),intent(inout):: sf
+    complex(kind=4),intent(in):: arr(:,:,:)
+    integer i,i2,i3,irec
+    call sf%assert_type('complex')
+    call sf%write_header()
+    call rsf_data_open(sf,'w')
+    if(sf%form().eq.'native') then
+        irec=0
+        do i3=1,sf%n(3)
+        do i2=1,sf%n(2)
+            irec=irec+1
+            write(sf%iunit,rec=irec) (arr(i,i2,i3),i=1,sf%n(1))
+        enddo
+        enddo
+    elseif(sf%form().eq.'ascii') then
+        do i3=1,sf%n(3)
+        do i2=1,sf%n(2)
+            write(sf%iunit,*) (arr(i,i2,i3),i=1,sf%n(1))
+        enddo
+        enddo
+    else
+        call errexit("Wrong form")
+    endif
+    close(sf%iunit)
+    end subroutine
+    subroutine rsf_write_z3(sf,arr)
+    class(rsf_t),intent(inout):: sf
+    complex(kind=8),intent(in):: arr(:,:,:)
+    complex(kind=4):: sarr(size(arr,1),size(arr,2),size(arr,3))
+    sarr=arr
+    call sf%write(sarr)
     end subroutine
 
 ! input/output
@@ -774,6 +922,16 @@ contains
     else
         par=text(1:ivalstart+ispace-1)
     endif
+    end subroutine
+
+    subroutine assert_type(sf,typ)
+    class(rsf_t),intent(in):: sf
+    character(len=*),intent(in):: typ
+    if(trim(sf%type())==trim(typ)) return
+    write(STDERR,*) 'Type mismatch!'
+    write(STDERR,*) '  header:'//trim(sf%type())
+    write(STDERR,*) '  data:'//trim(typ)
+    stop
     end subroutine
 
 end module
