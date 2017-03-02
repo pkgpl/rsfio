@@ -791,7 +791,9 @@ contains
         ! parse string
         if(len_trim(par)==0) exit
         call split_kv(par,key,val)
+        !print*,'split kv:'//trim(key)//'='//trim(val)//';'
         val=unquote(val)
+        !print*,'unqoute val:'//trim(val)//';'
         if(key.eq.'in') then
             sf%in=val
         elseif(key.eq.'data_format') then
@@ -914,7 +916,7 @@ contains
     character(len=*),intent(out):: par
     character:: eq="=",sp=' '
     integer:: id,ivalstart,ispace
-    integer:: iend
+    integer:: iend,i
     id=index(text,eq)
     if(id==0) then
         par=''
@@ -927,10 +929,19 @@ contains
         ivalstart=ivalstart+ispace
         ispace=index(text(ivalstart:),sp)
     enddo
-    if(ispace==0) then
+    if(ispace==0) then !! no more space behind the value = no more keywords
         par=text(1:)
     else
-        par=text(1:ivalstart+ispace-1)
+        !! check quotation mark
+        if(text(ivalstart:ivalstart)=='"') then
+            i=index(text(ivalstart+1:),'"')
+            par=text(1:ivalstart+i)
+        elseif(text(ivalstart:ivalstart)=="'") then
+            i=index(text(ivalstart+1:),"'")
+            par=text(1:ivalstart+i)
+        else
+            par=text(1:ivalstart+ispace-1)
+        endif
     endif
     end subroutine
 
