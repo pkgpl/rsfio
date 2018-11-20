@@ -779,15 +779,31 @@ contains
     endif
     end subroutine
 
+    integer function first_nontab_char(text)
+    character(len=*),intent(in):: text
+    character:: tab=char(9)
+    integer i
+    first_nontab_char=1
+    do i=1,len_trim(text)
+        if(text(i:i)==tab) then
+            first_nontab_char = i+1
+        else
+            return
+        endif
+    enddo
+    end function
+
     subroutine parse_text(sf,text)
     class(rsf_t),intent(inout):: sf
     character(len=*),intent(in):: text
     character(len=128):: key,val,par
     integer:: istart,iend,id,l
-    istart=1
+    !! remove tab before the text
+    istart=first_nontab_char(text)
     iend=len_trim(text)
     do while(istart < iend)
         call extract_kv(text(istart:iend),par)
+        !print*,'par//',trim(par)
         ! parse string
         if(len_trim(par)==0) exit
         call split_kv(par,key,val)
@@ -943,6 +959,7 @@ contains
             par=text(1:ivalstart+ispace-1)
         endif
     endif
+    par=trim(adjustl(par))
     end subroutine
 
     subroutine assert_type(sf,typ)
